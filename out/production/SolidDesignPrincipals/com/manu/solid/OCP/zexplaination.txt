@@ -1,0 +1,142 @@
+Let's explore the Open/Close Principle using a payment system as an example.
+In a payment system, we might need to support various payment methods, like Credit Card, PayPal, Bank Transfer, etc.
+
+Initially, if we handle all types of payments in a single class, it would violate the Open/Close Principle
+because we'd have to modify the existing code every time a new payment method is added.
+
+Example: Before Applying the Open/Close Principle
+
+// Payment Methods (Classes representing different payment methods)
+class CreditCardPayment {
+    public void processPayment(double amount) {
+        System.out.println("Processing credit card payment of " + amount);
+    }
+}
+
+class PayPalPayment {
+    public void processPayment(double amount) {
+        System.out.println("Processing PayPal payment of " + amount);
+    }
+}
+
+class BankTransferPayment {
+    public void processPayment(double amount) {
+        System.out.println("Processing bank transfer payment of " + amount);
+    }
+}
+
+// Payment Processor (Violates Open/Close Principle)
+class PaymentProcessor {
+    public void processPayment(String paymentType, double amount) {
+        if (paymentType.equals("CreditCard")) {
+            CreditCardPayment creditCardPayment = new CreditCardPayment();
+            creditCardPayment.processPayment(amount);
+        } else if (paymentType.equals("PayPal")) {
+            PayPalPayment payPalPayment = new PayPalPayment();
+            payPalPayment.processPayment(amount);
+        } else if (paymentType.equals("BankTransfer")) {
+            BankTransferPayment bankTransferPayment = new BankTransferPayment();
+            bankTransferPayment.processPayment(amount);
+        } else {
+            System.out.println("Unsupported payment method");
+        }
+    }
+}
+
+// Main Program
+public class Main {
+    public static void main(String[] args) {
+        PaymentProcessor processor = new PaymentProcessor();
+        processor.processPayment("CreditCard", 100.0);
+        processor.processPayment("PayPal", 200.0);
+        processor.processPayment("BankTransfer", 300.0);
+    }
+}
+
+Problem:
+In this implementation, every time we want to add a new payment method (for example, a new StripePayment),
+we would need to modify the PaymentProcessor class to account for the new method.
+This violates the Open/Close Principle because the class is not "closed" for modification when new functionality (payment method) is added.
+
+After Applying the Open/Close Principle
+To apply the Open/Close Principle, we should create an interface for the payment methods.
+Each payment method will implement this interface. Then, the PaymentProcessor class will be "closed" for modification,
+but it will be "open" for extension by adding new payment methods.
+
+Refactored Example:
+
+// Payment Method Interface
+interface PaymentMethod {
+    void processPayment(double amount);
+}
+
+// CreditCard Payment (implements PaymentMethod)
+class CreditCardPayment implements PaymentMethod {
+    @Override
+    public void processPayment(double amount) {
+        System.out.println("Processing credit card payment of " + amount);
+    }
+}
+
+// PayPal Payment (implements PaymentMethod)
+class PayPalPayment implements PaymentMethod {
+    @Override
+    public void processPayment(double amount) {
+        System.out.println("Processing PayPal payment of " + amount);
+    }
+}
+
+// BankTransfer Payment (implements PaymentMethod)
+class BankTransferPayment implements PaymentMethod {
+    @Override
+    public void processPayment(double amount) {
+        System.out.println("Processing bank transfer payment of " + amount);
+    }
+}
+
+// New Payment Method: Stripe (just as an example, we can add more payment methods easily)
+class StripePayment implements PaymentMethod {
+    @Override
+    public void processPayment(double amount) {
+        System.out.println("Processing Stripe payment of " + amount);
+    }
+}
+
+// Payment Processor (Does not need modification when new payment methods are added)
+class PaymentProcessor {
+    public void processPayment(PaymentMethod paymentMethod, double amount) {
+        paymentMethod.processPayment(amount);
+    }
+}
+
+// Main Program
+public class Main {
+    public static void main(String[] args) {
+        PaymentProcessor processor = new PaymentProcessor();
+
+        // We can now easily add new payment methods without modifying PaymentProcessor.
+        PaymentMethod creditCard = new CreditCardPayment();
+        PaymentMethod payPal = new PayPalPayment();
+        PaymentMethod bankTransfer = new BankTransferPayment();
+        PaymentMethod stripe = new StripePayment();
+
+        processor.processPayment(creditCard, 100.0);
+        processor.processPayment(payPal, 200.0);
+        processor.processPayment(bankTransfer, 300.0);
+        processor.processPayment(stripe, 400.0);  // New payment method
+    }
+}
+Key Changes:
+PaymentMethod Interface: We introduced an interface PaymentMethod that defines a common method processPayment.
+Each payment method (like CreditCardPayment, PayPalPayment, etc.) implements this interface.
+PaymentProcessor: The PaymentProcessor class no longer contains conditional logic for different payment types.
+It simply accepts any class that implements the PaymentMethod interface, thus making the system extensible.
+Adding New Payment Methods: To add a new payment method (e.g., StripePayment),
+you only need to create a new class that implements PaymentMethod and provide the implementation for processPayment.
+The PaymentProcessor class does not need to be modified, adhering to the Open/Close Principle.
+Benefits of Open/Close Principle:
+Closed for Modification: The PaymentProcessor class does not need to be modified when we add new payment methods.
+Open for Extension: We can extend the functionality by adding new payment methods (like Stripe, GooglePay, etc.) without altering existing code.
+Each new payment method just implements the PaymentMethod interface.
+This approach follows the Open/Close Principle because the system is easy to extend with new payment methods without changing the existing code in the payment processor.
+

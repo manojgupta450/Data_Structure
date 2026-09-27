@@ -1,0 +1,132 @@
+Interface Segregation Principle (ISP) in Java
+The Interface Segregation Principle (ISP) is one of the SOLID principles of object-oriented design. It states that:
+
+"Clients should not be forced to depend on interfaces they do not use."
+
+This means that instead of having large, monolithic interfaces, we should split them into smaller,
+more specific interfaces to ensure that implementing classes only need to implement methods relevant to them.
+
+
+
+Interface Segregation Principle (ISP) in Java – Payment Example
+The Interface Segregation Principle (ISP) states that a class should not be forced to implement methods it does not use. Instead of having one large interface with many unrelated methods, we should break it down into smaller, more specific interfaces.
+
+Bad Example (Violating ISP)
+Consider a payment system where we have an interface Payment that forces all payment methods to implement methods they don’t need.
+
+// Large interface forcing all payment types to implement unnecessary methods
+interface Payment {
+    void payOnline(double amount);
+    void payOffline(double amount);
+    void refund(double amount);
+}
+
+// Credit card supports online payment and refund, but not offline payment
+class CreditCardPayment implements Payment {
+    @Override
+    public void payOnline(double amount) {
+        System.out.println("Processing online payment of $" + amount + " via Credit Card.");
+    }
+
+    @Override
+    public void payOffline(double amount) {
+        throw new UnsupportedOperationException("Credit Card does not support offline payments.");
+    }
+
+    @Override
+    public void refund(double amount) {
+        System.out.println("Processing refund of $" + amount + " to Credit Card.");
+    }
+}
+
+// Cash supports only offline payments, but no online payments or refunds
+class CashPayment implements Payment {
+    @Override
+    public void payOnline(double amount) {
+        throw new UnsupportedOperationException("Cash payment does not support online payments.");
+    }
+
+    @Override
+    public void payOffline(double amount) {
+        System.out.println("Processing offline cash payment of $" + amount + ".");
+    }
+
+    @Override
+    public void refund(double amount) {
+        throw new UnsupportedOperationException("Cash payment does not support refunds.");
+    }
+}
+
+// Client Code
+public class ISPViolationDemo {
+    public static void main(String[] args) {
+        Payment cardPayment = new CreditCardPayment();
+        cardPayment.payOnline(100);
+        // cardPayment.payOffline(50); // Throws Exception!
+
+        Payment cashPayment = new CashPayment();
+        cashPayment.payOffline(50);
+        // cashPayment.payOnline(30); // Throws Exception!
+    }
+}
+Why is this a Violation?
+Unnecessary Methods – CreditCardPayment should not be forced to implement payOffline(), and CashPayment should not be forced to implement payOnline() or refund().
+Unsupported Operations – Classes are implementing methods they don’t need, leading to exceptions.
+ISP states that interfaces should be small and focused on specific behaviors.
+Good Example (Following ISP)
+To fix this, we break down the large Payment interface into smaller, more specific interfaces.
+
+
+// Interface for online payments
+interface OnlinePayment {
+    void payOnline(double amount);
+}
+
+// Interface for offline payments
+interface OfflinePayment {
+    void payOffline(double amount);
+}
+
+// Interface for payments that support refunds
+interface RefundablePayment {
+    void refund(double amount);
+}
+
+// Credit Card supports online payments and refunds
+class CreditCardPayment implements OnlinePayment, RefundablePayment {
+    @Override
+    public void payOnline(double amount) {
+        System.out.println("Processing online payment of $" + amount + " via Credit Card.");
+    }
+
+    @Override
+    public void refund(double amount) {
+        System.out.println("Processing refund of $" + amount + " to Credit Card.");
+    }
+}
+
+// Cash only supports offline payments
+class CashPayment implements OfflinePayment {
+    @Override
+    public void payOffline(double amount) {
+        System.out.println("Processing offline cash payment of $" + amount + ".");
+    }
+}
+
+// Client Code
+public class ISPDemo {
+    public static void main(String[] args) {
+        OnlinePayment cardPayment = new CreditCardPayment();
+        cardPayment.payOnline(100);
+
+        RefundablePayment refundable = new CreditCardPayment();
+        refundable.refund(50);
+
+        OfflinePayment cashPayment = new CashPayment();
+        cashPayment.payOffline(50);
+    }
+}
+How is ISP Maintained?
+✅ Each class implements only the interfaces it needs
+✅ No unnecessary methods or exceptions
+✅ More flexible and scalable – Adding new payment methods (like UPIPayment) is easier.

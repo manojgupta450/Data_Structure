@@ -1,0 +1,118 @@
+Best Example of Dependency Inversion Principle (DIP) in Java
+A great real-world example of DIP is a Payment Processing System where different payment methods (Credit Card, PayPal, etc.) can be used without modifying the core business logic.
+
+🚫 Bad Design (DIP Violation)
+In this version, the ShoppingCart class directly depends on concrete payment classes (CreditCardPayment, PayPalPayment).
+If we want to add new payment methods (e.g., Google Pay), we must modify the ShoppingCart class, which violates DIP.
+
+
+// Concrete payment classes
+class CreditCardPayment {
+    public void pay(int amount) {
+        System.out.println("Paid " + amount + " using Credit Card.");
+    }
+}
+
+class PayPalPayment {
+    public void pay(int amount) {
+        System.out.println("Paid " + amount + " using PayPal.");
+    }
+}
+
+// High-level module (ShoppingCart) is tightly coupled with low-level modules (Payment classes)
+class ShoppingCart {
+    private CreditCardPayment creditCardPayment;
+    private PayPalPayment payPalPayment;
+
+    public ShoppingCart() {
+        this.creditCardPayment = new CreditCardPayment(); // Direct dependency ❌
+        this.payPalPayment = new PayPalPayment(); // Direct dependency ❌
+    }
+
+    public void checkout(String method, int amount) {
+        if (method.equals("credit")) {
+            creditCardPayment.pay(amount);
+        } else if (method.equals("paypal")) {
+            payPalPayment.pay(amount);
+        }
+    }
+}
+
+// Client Code
+public class DIPViolationExample {
+    public static void main(String[] args) {
+        ShoppingCart cart = new ShoppingCart();
+        cart.checkout("credit", 100); // Hardcoded dependency
+    }
+}
+🚨 Problems in This Approach
+❌ ShoppingCart is tightly coupled with CreditCardPayment and PayPalPayment.
+❌ Adding a new payment method requires modifying the ShoppingCart class (violates Open/Closed Principle).
+❌ Not testable or flexible for Dependency Injection.
+
+✅ Good Design (DIP Applied)
+To fix this, we introduce an abstraction (interface) that ShoppingCart depends on, rather than concrete payment classes.
+
+Step 1: Create an Interface (Abstraction)
+
+// High-level module depends on an abstraction (PaymentMethod), not concrete classes
+interface PaymentMethod {
+    void pay(int amount);
+}
+Step 2: Implement Concrete Payment Classes
+
+// Different payment methods implementing the common abstraction
+class CreditCardPayment implements PaymentMethod {
+    @Override
+    public void pay(int amount) {
+        System.out.println("Paid " + amount + " using Credit Card.");
+    }
+}
+
+class PayPalPayment implements PaymentMethod {
+    @Override
+    public void pay(int amount) {
+        System.out.println("Paid " + amount + " using PayPal.");
+    }
+}
+
+class GooglePayPayment implements PaymentMethod {
+    @Override
+    public void pay(int amount) {
+        System.out.println("Paid " + amount + " using Google Pay.");
+    }
+}
+Step 3: Modify ShoppingCart to Depend on the Abstraction
+
+// Now ShoppingCart depends on PaymentMethod (abstraction) instead of concrete classes
+class ShoppingCart {
+    private PaymentMethod paymentMethod;
+
+    // Dependency Injection via constructor
+    public ShoppingCart(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public void checkout(int amount) {
+        paymentMethod.pay(amount);
+    }
+}
+Step 4: Use Dependency Injection in the Client Code
+
+public class com.manu.solid.DIP.GoodCode.DIPExample {
+    public static void main(String[] args) {
+        PaymentMethod paymentMethod = new CreditCardPayment(); // Can be replaced with any payment method
+        ShoppingCart cart = new ShoppingCart(paymentMethod);
+        cart.checkout(100); // Output: Paid 100 using Credit Card.
+
+        // Switching to another payment method without modifying ShoppingCart
+        PaymentMethod anotherPaymentMethod = new PayPalPayment();
+        ShoppingCart anotherCart = new ShoppingCart(anotherPaymentMethod);
+        anotherCart.checkout(200); // Output: Paid 200 using PayPal.
+    }
+}
+🎯 Why is This the Best Approach?
+✅ ShoppingCart no longer depends on concrete payment classes.
+✅ Adding new payment methods (e.g., Google Pay) does not require modifying ShoppingCart.
+✅ Supports Dependency Injection, making the code testable and maintainable.
+✅ Follows Open/Closed Principle (we can add new payment methods without modifying existing code).

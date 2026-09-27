@@ -1,0 +1,88 @@
+Liskov Substitution Principle (LSP) in Java – File Example
+The Liskov Substitution Principle (LSP) states that subclasses should be able to replace their parent class without altering the correctness of the program.
+
+Bad Example (Violating LSP)
+Consider a File class that allows reading and writing, and a ReadOnlyFile subclass that violates LSP because it removes functionality (writing).
+
+// Base class
+class File {
+    public void read() {
+        System.out.println("Reading file...");
+    }
+
+    public void write(String data) {
+        System.out.println("Writing data: " + data);
+    }
+}
+
+// Subclass - Violates LSP because it disables write functionality
+class ReadOnlyFile extends File {
+    @Override
+    public void write(String data) {
+        throw new UnsupportedOperationException("Cannot write to a read-only file!");
+    }
+}
+
+// Client Code
+public class LSPViolationDemo {
+    public static void main(String[] args) {
+        File file = new ReadOnlyFile();
+        file.read();  // Works fine
+        file.write("Hello, World!");  // Throws exception, violating LSP
+    }
+}
+Why is this a Violation?
+Polymorphism is broken – ReadOnlyFile does not fully support the behavior of File.
+Unexpected Exception – A client expecting write() to work gets an exception.
+LSP states that a subclass should not remove functionality from the base class.
+Good Example (Following LSP)
+To fix this, we should separate Readable and Writable behavior.
+
+// Interface for readable files
+interface ReadableFile {
+    void read();
+}
+
+// Interface for writable files
+interface WritableFile extends ReadableFile {
+    void write(String data);
+}
+
+// Concrete class for a normal file (read & write)
+class RegularFile implements WritableFile {
+    @Override
+    public void read() {
+        System.out.println("Reading file...");
+    }
+
+    @Override
+    public void write(String data) {
+        System.out.println("Writing data: " + data);
+    }
+}
+
+// Concrete class for a read-only file (only read)
+class ReadOnlyFile implements ReadableFile {
+    @Override
+    public void read() {
+        System.out.println("Reading read-only file...");
+    }
+}
+
+// Client Code
+public class LSPDemo {
+    public static void main(String[] args) {
+        ReadableFile file1 = new RegularFile();
+        ReadableFile file2 = new ReadOnlyFile();
+
+        file1.read();  // Works fine
+        file2.read();  // Works fine
+
+        WritableFile writableFile = new RegularFile();
+        writableFile.write("Hello, World!"); // Works fine
+    }
+}
+How is LSP Maintained?
+✅ No overridden methods throw exceptions unexpectedly
+✅ Clients can use ReadableFile without worrying about missing functionality
+✅ Polymorphism works correctly – RegularFile and ReadOnlyFile can be substituted without breaking the program

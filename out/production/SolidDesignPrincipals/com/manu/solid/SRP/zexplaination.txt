@@ -1,0 +1,88 @@
+The Single Responsibility Principle (SRP) states that a class should have only one reason to change, meaning it should only have one responsibility.
+
+Example: Payment Processing
+Let's implement a payment system that follows SRP.
+
+Bad Example (Violating SRP)
+class PaymentService {
+    public void processPayment(String paymentType, double amount) {
+        if (paymentType.equals("CreditCard")) {
+            System.out.println("Processing credit card payment of $" + amount);
+        } else if (paymentType.equals("PayPal")) {
+            System.out.println("Processing PayPal payment of $" + amount);
+        }
+    }
+
+    public void generateReceipt(double amount) {
+        System.out.println("Generating receipt for $" + amount);
+    }
+
+    public void sendNotification(String message) {
+        System.out.println("Sending notification: " + message);
+    }
+}
+Why is this a violation?
+The PaymentService class has multiple responsibilities:
+Processing payments
+Generating receipts
+Sending notifications
+If we need to modify the notification system, we have to change PaymentService, violating SRP.
+Good Example (Following SRP)
+Let's refactor the code by separating concerns.
+
+
+// Handles only payment processing
+class PaymentProcessor {
+    public void processPayment(String paymentType, double amount) {
+        System.out.println("Processing " + paymentType + " payment of $" + amount);
+    }
+}
+
+// Handles only receipt generation
+class ReceiptGenerator {
+    public void generateReceipt(double amount) {
+        System.out.println("Generating receipt for $" + amount);
+    }
+}
+
+// Handles only sending notifications
+class NotificationService {
+    public void sendNotification(String message) {
+        System.out.println("Sending notification: " + message);
+    }
+}
+
+// High-level class that coordinates different services
+class PaymentService {
+    private final PaymentProcessor paymentProcessor;
+    private final ReceiptGenerator receiptGenerator;
+    private final NotificationService notificationService;
+
+    public PaymentService(PaymentProcessor paymentProcessor, ReceiptGenerator receiptGenerator, NotificationService notificationService) {
+        this.paymentProcessor = paymentProcessor;
+        this.receiptGenerator = receiptGenerator;
+        this.notificationService = notificationService;
+    }
+
+    public void makePayment(String paymentType, double amount) {
+        paymentProcessor.processPayment(paymentType, amount);
+        receiptGenerator.generateReceipt(amount);
+        notificationService.sendNotification("Payment of $" + amount + " was successful.");
+    }
+}
+
+// Usage
+public class SRPDemo {
+    public static void main(String[] args) {
+        PaymentProcessor processor = new PaymentProcessor();
+        ReceiptGenerator receipt = new ReceiptGenerator();
+        NotificationService notification = new NotificationService();
+
+        PaymentService paymentService = new PaymentService(processor, receipt, notification);
+        paymentService.makePayment("CreditCard", 100.0);
+    }
+}
+Benefits of SRP in this Example
+✅ Better maintainability – Each class has a single responsibility.
+✅ Easier testing – We can test payment processing, receipt generation, and notifications separately.
+✅ Scalability – New payment types, notification methods, or receipt formats can be added independently.
